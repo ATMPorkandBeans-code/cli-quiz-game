@@ -1,0 +1,21 @@
+{
+  "name": "cli-quiz-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "quiz.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ATMPorkandBeans-code/cli-quiz-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ATMPorkandBeans-code/cli-quiz-game/issues"
+  },
+  "homepage": "https://github.com/ATMPorkandBeans-code/cli-quiz-game#readme"
+}
