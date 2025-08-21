@@ -6,23 +6,54 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const questions = {
-  "Who won the 2024 World Series?\n": "Los Angeles Dodgers",
-  "What is the capital city of New York State?\n": "Albany",
-  "Which country is the Vatican City surrounded by?\n": "Italy",
-};
-let timerDone = false;
+const questions = [
+  "Who won the 2024 World Series?",
+  "What is the capital city of New York State?",
+  "Which country is the Vatican City surrounded by?"
+];
+
+const answers = ["Dodgers", "Albany", "Italy"]
 let playerName = "";
 
 console.log("Welcome to The Quiz Game!!  \n");
 
-function askQuestion(question) {
+const askQuestion = (question) => {
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
       resolve(answer);
     });
   });
 }
+
+const timer = (seconds) => {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve("Time's up!"), seconds * 1000);
+  });
+};
+
+
+  let playerScore = 0;
+  let qIndex = 0;
+  let aIndex = 0;
+
+const question = async() => {
+  const result = await Promise.race([
+    askQuestion(questions[qIndex]),
+    timer(10)
+  ]);
+  if (result === "Time's up!"){
+      qIndex++;
+      aIndex++;
+      console.log(result, qIndex, aIndex)
+  } else if (result === answers[aIndex]){
+      playerScore++;
+      qIndex++;
+      aIndex++;
+      console.log(result, qIndex, aIndex, playerScore)
+  }
+}
+
+question();
 
 async function getPlayerInfo() {
   playerName = await askQuestion("What is your Name?\n");
@@ -33,38 +64,6 @@ async function getPlayerInfo() {
   }
 }
 
-getPlayerInfo();
 
-const playGame = async () => {
-  let playerScore = 0;
-  for (let question in questions) {
-    const query = async () => {
-      const questionPromise = rl.question(`${question}\n`);
-      const result = await Promise.race([questionPromise, runTimer(10000)]);
-    };
-    query();
 
-    // console.log(question);
-    // const choice = await rl.question("Answer Here: ");
-    // await runTimer(10000);
-    if (result === questions[question] && timerDone === false) {
-      playerScore++;
-      console.log("Great work! You are correct!");
-    } else if (timerDone) {
-      console.log("Time is Up! New Question");
-    } else if (result != questions[question]) {
-      console.log("Incorrect response");
-    }
-  }
 
-  console.log(`${playerName}, your score is ${playerScore} / 3.`);
-};
-
-const runTimer = (ms) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      timerDone = true;
-      resolve();
-    }, ms);
-  });
-};
