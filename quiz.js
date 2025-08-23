@@ -17,9 +17,21 @@ const questions = [
 const answers = ["b", "d", "c", "a", "c"]
 let playerName = "";
 let playerScore = 0;
-let qIndex = 0;
-let aIndex = 0;
+let qIndex = 0; //Index for questions array
+let aIndex = 0; //Index for answers array
 
+async function getPlayerInfo() {
+  playerName = await askQuestion("What is your Name?\n");
+  console.log(`Hello ${playerName}!`);
+  const gameStatus = await askQuestion("Would you like to play? y/n\n");
+  if (gameStatus === "y") {
+    playGame();
+  } else {
+    process.exit(0);
+  };
+}
+
+//Instantiates readline Question
 const askQuestion = (question) => {
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
@@ -28,32 +40,39 @@ const askQuestion = (question) => {
   });
 }
 
+//Instatiates Timer fuunction
 const timer = (seconds) => {
   return new Promise((resolve) => {
     setTimeout(() => resolve("Time's up!"), seconds * 1000);
   });
 };
 
+//Stages a race between the question and the timer 
 const question = async() => {
   const result = await Promise.race([
     askQuestion(questions[qIndex]),
-    timer(10)
+    timer(20)
   ]);
   return result;
   }
 
+// Calculates the player's score from the playerResults array
 const calculateScore = (playerArray) => {
   for (const answer in playerArray) {
-    if (playerArray[answer] === answers[aIndex]) {
+    if (playerArray[answer] === answers[aIndex]){
       playerScore++;
       aIndex++;
+    } else{
+      aIndex++;
     }
-}
+};
 }
 
+// Starts the Trivia game
 const playGame = async() => {
   const playerResults = [];
-  
+  console.log("Choose one of the multiple choice options and type the letter and press Enter on your keyboard. \nYou have 20 seconds to answer each question. Do your best!!\n");
+
   const answer1 = await question();
   qIndex++;
   const answer2 = await question();
@@ -65,7 +84,7 @@ const playGame = async() => {
   const answer5 = await question();
   qIndex++;
 
-  playerResults.push(answer1, answer2, answer3, answer4, answer5)
+  playerResults.push(answer1, answer2, answer3, answer4, answer5);
 
   calculateScore(playerResults);
 
@@ -76,22 +95,10 @@ const playGame = async() => {
     qIndex = 0;
     aIndex = 0;
     playGame();
-  } else {
+  } else{
     process.exit(0);
-  }
-}
-
-async function getPlayerInfo() {
-  playerName = await askQuestion("What is your Name?\n");
-  console.log(`Hello ${playerName}!`);
-  const gameStatus = await askQuestion("Would you like to play? y/n\n");
-  if (gameStatus === "y") {
-    playGame();
-  } else {
-    process.exit(0);
-  }
+  };
 }
 
 console.log("Welcome to The Quiz Game!!  \n");
 getPlayerInfo();
-
