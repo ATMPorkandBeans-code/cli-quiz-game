@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import readline from "readline";
+import chalk from 'chalk'
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -22,10 +23,10 @@ let aIndex = 0; //Index for answers array
 
 async function getPlayerInfo() {
   playerName = await askQuestion("What is your Name?\n");
-  console.log(`Hello ${playerName}!`);
+  console.log(`Hello ${chalk.red(playerName)}!`);
   const gameStatus = await askQuestion("Would you like to play? y/n\n");
   if (gameStatus === "y") {
-    playGame();
+    run();
   } else {
     process.exit(0);
   };
@@ -39,22 +40,22 @@ const askQuestion = (question) => {
     });
   });
 }
-
-//Instatiates Timer fuunction
-const timer = (seconds) => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve("Time's up!"), seconds * 1000);
+// Instantiaties logic for the timed questions.
+function timedQuestion(query, ms) {
+  const ac = new AbortController();
+  const { signal } = ac;
+  const q = new Promise((resolve, reject) => {
+    rl.question(query, { signal }, (answer) => resolve(answer));
   });
-};
-
-//Stages a race between the question and the timer 
-const question = async() => {
-  const result = await Promise.race([
-    askQuestion(questions[qIndex]),
-    timer(20)
-  ]);
-  return result;
-  }
+  const timer = new Promise((_, reject) => {
+    const id = setTimeout(() => {
+      ac.abort();                
+      reject(new Error("Time's up!"));
+    }, ms);
+    signal.addEventListener("abort", () => clearTimeout(id), { once: true });
+  });
+  return Promise.race([q, timer]);
+}
 
 // Calculates the player's score from the playerResults array
 const calculateScore = (playerArray) => {
@@ -69,36 +70,31 @@ const calculateScore = (playerArray) => {
 }
 
 // Starts the Trivia game
-const playGame = async() => {
-  const playerResults = [];
-  console.log("Choose one of the multiple choice options and type the letter and press Enter on your keyboard. \nYou have 20 seconds to answer each question. Do your best!!\n");
+const run = async() => {
+  const results = [];
+  console.log("There are 5 questions and you have 10 seconds to answer each question. Good Luck!\n")
+  for (const q of questions) {
+    try {
+      const ans = await timedQuestion(q, 10000);
+      results.push(ans);
+    } catch (e) {
+      console.log("Time's up! Next question...\n");
+      results.push(null);
+    }
+  }
+  calculateScore(results);
 
-  const answer1 = await question();
-  qIndex++;
-  const answer2 = await question();
-  qIndex++;
-  const answer3 = await question();
-  qIndex++;
-  const answer4 = await question();
-  qIndex++;
-  const answer5 = await question();
-  qIndex++;
-
-  playerResults.push(answer1, answer2, answer3, answer4, answer5);
-
-  calculateScore(playerResults);
-
-  console.log(`Thanks for playing ${playerName}! Your score is ${playerScore} out of 5\n`)
+  console.log(`Thanks for playing ${chalk.red(playerName)}! Your score is ${chalk.red(playerScore)} out of 5\n`)
   const playAgain = await askQuestion("Would you like to play again? y/n\n")
   if (playAgain === "y"){
     playerScore = 0;
     qIndex = 0;
     aIndex = 0;
-    playGame();
+    run();
   } else{
     process.exit(0);
   };
 }
 
-console.log("Welcome to The Quiz Game!!  \n");
+console.log(chalk.bgGreen("Welcome to The Quiz Game!!  \n"));
 getPlayerInfo();

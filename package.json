@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/ATMPorkandBeans-code/cli-quiz-game/issues"
   },
-  "homepage": "https://github.com/ATMPorkandBeans-code/cli-quiz-game#readme"
+  "homepage": "https://github.com/ATMPorkandBeans-code/cli-quiz-game#readme",
+  "dependencies": {
+    "chalk": "^5.6.0"
+  }
 }
