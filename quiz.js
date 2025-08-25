@@ -17,15 +17,12 @@ const questions = [
 
 const answers = ["b", "d", "c", "a", "c"]
 let playerName = "";
-let playerScore = 0;
-let qIndex = 0; //Index for questions array
-let aIndex = 0; //Index for answers array
 
 async function getPlayerInfo() {
   playerName = await askQuestion("What is your Name?\n");
-  console.log(`Hello ${chalk.red(playerName)}!`);
-  const gameStatus = await askQuestion("Would you like to play? y/n\n");
-  if (gameStatus === "y") {
+  console.log(`\nHello ${chalk.red(playerName)}!`);
+  const gameStatus = await askQuestion("\nWould you like to play? y/n\n");
+  if (gameStatus.toLowerCase === "y") {
     runQuiz();
   } else {
     rl.close();
@@ -66,18 +63,6 @@ function timedQuestion(question, timeout) {
   });
 }
 
-// Calculates the player's score from the playerResults array
-const calculateScore = (playerArray) => {
-  for (const answer in playerArray) {
-    if (playerArray[answer] === answers[aIndex]){
-      playerScore++;
-      aIndex++;
-    } else{
-      aIndex++;
-    }
-};
-}
-
 // Starts the Trivia game
 async function runQuiz() {
   let score = 0;
@@ -100,8 +85,6 @@ async function runQuiz() {
   const playAgain = await askQuestion("Would you like to play again? y/n\n")
   if (playAgain === "y"){
     score = 0;
-    qIndex = 0;
-    aIndex = 0;
     runQuiz();
   } else{
     rl.close();
