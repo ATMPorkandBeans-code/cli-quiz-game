@@ -26,8 +26,9 @@ async function getPlayerInfo() {
   console.log(`Hello ${chalk.red(playerName)}!`);
   const gameStatus = await askQuestion("Would you like to play? y/n\n");
   if (gameStatus === "y") {
-    run();
+    runQuiz();
   } else {
+    rl.close();
     process.exit(0);
   };
 }
@@ -41,20 +42,28 @@ const askQuestion = (question) => {
   });
 }
 // Instantiaties logic for the timed questions.
-function timedQuestion(query, ms) {
-  const ac = new AbortController();
-  const { signal } = ac;
-  const q = new Promise((resolve, reject) => {
-    rl.question(query, { signal }, (answer) => resolve(answer));
+function timedQuestion(question, timeout) {
+  return new Promise((resolve, reject) => {
+    let answered = false;
+
+    // Ask the question
+    rl.question(question, (input) => {
+      if (!answered) {
+        answered = true;
+        clearTimeout(timer);  // stop the timer if user answered
+        resolve(input.trim()); // send their answer
+      }
+    });
+
+    // Timer setup
+    const timer = setTimeout(() => {
+      if (!answered) {
+        answered = true;
+        rl.write("\n"); // move to next line cleanly
+        reject(new Error("timeout"));
+      }
+    }, timeout);
   });
-  const timer = new Promise((_, reject) => {
-    const id = setTimeout(() => {
-      ac.abort();                
-      reject(new Error("Time's up!"));
-    }, ms);
-    signal.addEventListener("abort", () => clearTimeout(id), { once: true });
-  });
-  return Promise.race([q, timer]);
 }
 
 // Calculates the player's score from the playerResults array
@@ -70,28 +79,32 @@ const calculateScore = (playerArray) => {
 }
 
 // Starts the Trivia game
-const run = async() => {
-  const results = [];
-  console.log("There are 5 questions and you have 10 seconds to answer each question. Good Luck!\n")
-  for (const q of questions) {
+async function runQuiz() {
+  let score = 0;
+
+  for (let i = 0; i < questions.length; i++) {
     try {
-      const ans = await timedQuestion(q, 10000);
-      results.push(ans);
-    } catch (e) {
-      console.log("Time's up! Next question...\n");
-      results.push(null);
+      const response = await timedQuestion(questions[i], 5000);
+      if (response.toLowerCase() === answers[i]) {
+        score++;
+        console.log("✅ Correct!");
+      } else {
+        console.log("❌ Incorrect.");
+      }
+    } catch (err) {
+      console.log("⏰ Time's up!");
     }
   }
-  calculateScore(results);
 
-  console.log(`Thanks for playing ${chalk.red(playerName)}! Your score is ${chalk.red(playerScore)} out of 5\n`)
+  console.log(`Thanks for playing ${chalk.red(playerName)}! Your score is ${chalk.red(score)} out of 5\n`)
   const playAgain = await askQuestion("Would you like to play again? y/n\n")
   if (playAgain === "y"){
-    playerScore = 0;
+    score = 0;
     qIndex = 0;
     aIndex = 0;
-    run();
+    runQuiz();
   } else{
+    rl.close();
     process.exit(0);
   };
 }
